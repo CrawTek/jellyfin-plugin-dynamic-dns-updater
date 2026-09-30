@@ -1,0 +1,21 @@
+[
+  {
+    "guid": "87444c87-1082-414f-a07d-5e22c87c16f4",
+    "name": "Dynamic DNS Updater",
+    "description": "Updates a Dyn, No-IP, DuckDNS, Dynu or FreeDNS hostname when your public IPv4 address changes.",
+    "overview": "Administrator settings, durable status, scheduled checks, and provider-safe retries.",
+    "owner": "CrawTek",
+    "category": "General",
+    "imageUrl": "https://github.com/CrawTek/jellyfin-plugin-dynamic-dns-updater/releases/download/v1.4.0.1/icon.png",
+    "versions": [
+      {
+        "version": "1.4.0.1",
+        "targetAbi": "12.1.0.0",
+        "changelog": "Five DDNS providers, 10-minute checks, and settings-based error recovery.",
+        "sourceUrl": "https://github.com/CrawTek/jellyfin-plugin-dynamic-dns-updater/releases/download/v1.4.0.1/Dynamic-DNS-Updater-1.4.0.1.zip",
+        "checksum": "51f574d1885bbe0278ab7eb48407591c",
+        "timestamp": "2026-09-30T22:06:24.9263172Z"
+      }
+    ]
+  }
+]
