@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Dynamic DNS Updater</title></head>
+<body>
+<div id="dynDnsPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox">
+  <style>
+    #dynDnsPage .dns-provider-tiles { display:flex; flex-wrap:wrap; gap:12px; }
+    #dynDnsPage .dns-provider-tile { flex:1 1 140px; min-height:88px; margin:0; padding:16px 24px; border:2px solid #68717d; border-radius:10px; background:#303640; color:#c1c7cf; font-family:inherit; font-size:18px; font-weight:600; line-height:1.4; cursor:pointer; }
+    #dynDnsPage .dns-provider-tile[aria-pressed="true"] { border-color:#00a4dc; background:#073f56; color:#fff; box-shadow:0 0 0 1px #00a4dc; }
+    #dynDnsPage .dns-provider-tile:hover { border-color:#b8ddeb; }
+    #dynDnsPage .dns-provider-tile:focus-visible { outline:3px solid #fff; outline-offset:3px; }
+    #dynDnsPage .dns-provider-choice { display:block; margin-top:4px; font-size:12px; font-weight:400; }
+    #dynDnsPage .dns-settings-column { width:100%; max-width:64rem; }
+    #dynDnsPage #dynDnsForm > button[type="submit"] { width:100%; margin:0; box-sizing:border-box; }
+    #dynDnsPage .dns-status-panel { box-sizing:border-box; width:100%; margin:20px auto; padding:22px; border:2px solid #68717d; border-radius:12px; background:rgba(0,0,0,.14); }
+    #dynDnsPage .dns-status-panel[data-outcome="success"] { border-color:#42d77d; box-shadow:0 0 16px rgba(66,215,125,.3), inset 0 0 12px rgba(66,215,125,.05); }
+    #dynDnsPage .dns-status-panel[data-outcome="error"] { border-color:#ff7070; box-shadow:0 0 16px rgba(255,112,112,.3), inset 0 0 12px rgba(255,112,112,.05); }
+    #dynDnsPage .dns-status-heading { display:flex; flex-wrap:wrap; align-items:center; gap:16px; margin-bottom:12px; }
+    #dynDnsPage .dns-status-heading h3 { margin:0; font-size:1.2em; }
+    #dynDnsPage #dnsOutcome { font-weight:700; }
+    #dynDnsPage .dns-status-panel[data-outcome="success"] #dnsOutcome,
+    #dynDnsPage .dns-status-panel[data-outcome="success"] #dnsMessage { color:#42d77d; }
+    #dynDnsPage .dns-status-panel[data-outcome="error"] #dnsOutcome,
+    #dynDnsPage .dns-status-panel[data-outcome="error"] #dnsMessage { color:#ff7070; }
+    #dynDnsPage #dnsMessage { font:inherit; line-height:1.5; margin:0; padding:0; background:none; }
+    #dynDnsPage .dns-status-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 28px; margin:20px 0; }
+    #dynDnsPage .dns-status-grid dt { font:inherit; opacity:.75; }
+    #dynDnsPage .dns-status-grid dd { margin:4px 0 0; font:inherit; overflow-wrap:anywhere; }
+    #dynDnsPage .dns-status-actions { display:flex; flex-wrap:wrap; gap:12px; }
+    #dynDnsPage .dns-status-actions button { margin:0; }
+    #dynDnsPage .dns-footer { width:100%; box-sizing:border-box; font:inherit; line-height:1.5; }
+    #dynDnsPage .dns-footer p { font:inherit; line-height:inherit; margin:16px 0; }
+    #dynDnsPage .dns-footer h3 { font-size:1.2em; margin:24px 0 12px; }
+    #dynDnsPage .dns-footer h4 { font-size:1em; margin:22px 0 10px; }
+    #dynDnsPage .dns-footer ul { margin:0 0 20px; padding-left:1.5em; }
+    #dynDnsPage .dns-footer li { margin:10px 0; line-height:1.5; }
+    @media (max-width:600px) { #dynDnsPage .dns-status-grid { grid-template-columns:1fr; } #dynDnsPage .dns-status-panel { padding:16px; } }
+  </style>
+  <div data-role="content"><div class="content-primary">
+    <img id="dnsIcon" alt="Dynamic DNS Updater globe and refresh arrows" width="96" height="96" style="border-radius:16px">
+    <h2>Dynamic DNS Updater</h2>
+    <p>Developed by CrawTek · Version 1.4.0.1</p>
+    <p>Keep your Dyn, No-IP, DuckDNS, Dynu or FreeDNS hostname connected to your home’s public IPv4 address.</p>
+    <div class="dns-settings-column">
+    <form id="dynDnsForm">
+      <div class="checkboxContainer"><label><input is="emby-checkbox" id="dnsEnabled" type="checkbox" aria-controls="dnsFields dnsStatusDetails dnsFooter" aria-expanded="false"><span>Enable Dynamic DNS</span></label></div>
+      <fieldset id="dnsFields" hidden disabled style="border:0;padding:0;margin:0;min-width:0">
+      <div class="inputContainer">
+        <span class="inputLabel" id="dnsProviderLabel">DNS provider</span>
+        <input id="dnsProvider" type="hidden" value="Dyn">
+        <div class="dns-provider-tiles" role="group" aria-labelledby="dnsProviderLabel">
+          <button class="dns-provider-tile" type="button" data-provider="Dyn" aria-pressed="true">Dyn<span class="dns-provider-choice" aria-hidden="true">Selected</span></button>
+          <button class="dns-provider-tile" type="button" data-provider="NoIP" aria-pressed="false">No-IP<span class="dns-provider-choice" aria-hidden="true">Select provider</span></button>
+          <button class="dns-provider-tile" type="button" data-provider="DuckDNS" aria-pressed="false">DuckDNS<span class="dns-provider-choice" aria-hidden="true">Select provider</span></button>
+          <button class="dns-provider-tile" type="button" data-provider="Dynu" aria-pressed="false">Dynu<span class="dns-provider-choice" aria-hidden="true">Select provider</span></button>
+          <button class="dns-provider-tile" type="button" data-provider="FreeDNS" aria-pressed="false">FreeDNS<span class="dns-provider-choice" aria-hidden="true">Select provider</span></button>
+        </div>
+      </div>
+      <div class="inputContainer"><label class="inputLabel" for="dnsHost">Hostname</label><input is="emby-input" id="dnsHost" type="text" required autocomplete="off" placeholder="media.example.net"></div>
+      <div class="inputContainer" id="dnsUserContainer"><label id="dnsUserLabel" class="inputLabel" for="dnsUser">Dyn username</label><input is="emby-input" id="dnsUser" type="text" autocomplete="off"></div>
+      <div class="inputContainer"><label id="dnsKeyLabel" class="inputLabel" for="dnsKey">Dyn password</label><input is="emby-input" id="dnsKey" type="password" autocomplete="new-password" spellcheck="false"><div class="fieldDescription" id="dnsKeyHint">Enter your Dyn password.</div></div>
+      <p id="dnsProviderHelp"></p>
+      <p id="dnsNoIpNotice" hidden>Free No-IP hostnames must be confirmed every 30 days in your No-IP account. This plugin cannot confirm them for you. For a DDNS Key, use all.ddnskey.com as the hostname and scope the key to only the hostname you intend to update: all hostnames attached to that key receive updates.</p>
+      <p>Disable any other updater for this hostname before enabling this plugin. Your router can continue updating a different hostname.</p>
+      </fieldset>
+      <button is="emby-button" class="raised button-submit block" type="submit">Save settings</button>
+
+
+    <section id="dnsStatusPanel" class="dns-status-panel" data-outcome="pending" aria-labelledby="dnsStatusHeading">
+      <div class="dns-status-heading"><h3 id="dnsStatusHeading">Update status</h3><span id="dnsOutcome" role="status" aria-live="polite">Waiting</span></div>
+      <p id="dnsMessage" role="status" aria-live="polite">Loading…</p>
+      <div id="dnsStatusDetails" hidden>
+        <dl class="dns-status-grid">
+          <div><dt>Detected public IP</dt><dd id="dnsIp">—</dd></div>
+          <div><dt>Last check</dt><dd id="dnsChecked">—</dd></div>
+          <div><dt>Last confirmed by provider</dt><dd id="dnsSuccess">—</dd></div>
+          <div><dt>Next allowed check</dt><dd id="dnsNext">—</dd></div>
+        </dl>
+        <div class="dns-status-actions">
+          <button is="emby-button" id="dnsCheck" class="raised" type="button">Check now</button>
+          <button is="emby-button" id="dnsRefresh" class="raised" type="button">Refresh status</button>
+        </div>
+      </div>
+    </section>
+    <div id="dnsFooter" class="dns-footer" hidden>
+      <h3>Dynamic DNS (DDNS) Updater Operations</h3>
+      <p>The <strong>Jellyfin DDNS Updater</strong> automatically maintains your remote access connection by monitoring and updating your domain's public IP address.</p>
+      <h4>Operational Logic</h4>
+      <ul>
+        <li><strong>Automated Checks:</strong> The updater runs every 10 minutes. You can monitor or adjust this frequency via <strong>Dashboard → Scheduled Tasks → Dynamic DNS Updater</strong>.</li>
+        <li><strong>Smart Update Throttling:</strong> To prevent unnecessary network traffic and avoid provider rate-limits, unchanged IP addresses are automatically filtered and skipped.</li>
+        <li><strong>Cooldown Enforcement:</strong> Triggering a manual check via the "Check now" button respects the exact same cooldown rules as automated tasks to prevent API abuse.</li>
+        <li><strong>Service Dependent:</strong> IP tracking and background updates are active <strong>only</strong> while the Jellyfin server application is running.</li>
+      </ul>
+      <h4>Security &amp; Hardening</h4>
+      <ul>
+        <li><strong>Access Control:</strong> Your provider secret keys are isolated in a dedicated configuration file, securely restricted to be readable only by the core Jellyfin operating system account.</li>
+        <li><strong>Encrypted Transmission:</strong> Always use an <strong>HTTPS</strong> connection when managing your server or entering provider credentials remotely to prevent credential interception.</li>
+        <li><strong>Backup Management:</strong> Treat your system backups as sensitive material. Because they mirror your live directory structure, they contain your raw DDNS authentication keys and must be heavily protected.</li>
+      </ul>
+    </div>
+    </form>
+    </div>
+  </div></div>
+  <script>
+  (function () {
+    var page = document.querySelector('#dynDnsPage');
+    page.querySelector('#dnsIcon').src = ApiClient.getUrl('Plugins/87444c87-1082-414f-a07d-5e22c87c16f4/1.4.0.1/Image');
+    var savedProvider = 'Dyn', hasKey = false, savedSettings = null;
+    function el(id) { return page.querySelector('#' + id); }
+    function field(obj, name) { return obj[name] !== undefined ? obj[name] : obj[name.charAt(0).toLowerCase() + name.slice(1)]; }
+    function date(value) { return value ? new Date(value).toLocaleString() : '—'; }
+    function toggleFields() {
+      var enabled = el('dnsEnabled').checked;
+      el('dnsFields').hidden = !enabled;
+      el('dnsFields').disabled = !enabled;
+      el('dnsStatusDetails').hidden = !enabled;
+      el('dnsFooter').hidden = !enabled;
+      el('dnsEnabled').setAttribute('aria-expanded', String(enabled));
+    }
+    el('dnsEnabled').addEventListener('change', toggleFields);
+    function providerHelp() {
+      page.querySelectorAll('.dns-provider-tile').forEach(function (tile) {
+        var selected = tile.getAttribute('data-provider') === el('dnsProvider').value;
+        tile.setAttribute('aria-pressed', String(selected));
+        tile.querySelector('.dns-provider-choice').textContent = selected ? 'Selected' : 'Select provider';
+      });
+      var free = el('dnsProvider').value === 'FreeDNS';
+      var dynu = el('dnsProvider').value === 'Dynu';
+      var duck = el('dnsProvider').value === 'DuckDNS';
+      el('dnsUserContainer').hidden = duck || free; el('dnsUser').disabled = duck || free;
+      el('dnsHost').placeholder = duck ? 'yourname.duckdns.org' : 'media.example.net';
+      var noip = el('dnsProvider').value === 'NoIP';
+      var changed = el('dnsProvider').value !== savedProvider;
+      el('dnsUserLabel').textContent = dynu ? 'Dynu username' : noip ? 'DDNS Key username' : 'Dyn username';
+      el('dnsKeyLabel').textContent = free ? 'FreeDNS update key' : dynu ? 'IP update password' : duck ? 'DuckDNS token' : noip ? 'DDNS Key password' : 'Dyn password';
+      el('dnsNoIpNotice').hidden = !noip;
+      el('dnsProviderHelp').textContent = free ? 'In FreeDNS (afraid.org), open Dynamic DNS and copy the Direct URL for your IPv4 (A) record. Enter only the key after the question mark here, and the matching hostname above. Use the standard Direct URL, not a v2 URL. No username is needed. The key determines which record is updated; keep it private.' : dynu ? 'Enter a primary hostname listed in Dynu DDNS Services, your Dynu username, and your separate IP update password from Manage Credentials. Alias records and groups are not supported. Only IPv4 is updated.' : duck ? 'Enter your DuckDNS hostname (yourname.duckdns.org or just yourname) and the token from your DuckDNS account. No username is needed. Keep the account token private.' : noip ? 'In No-IP, generate a DDNS Key for your hostname. Enter its generated username and password here, not in chat.' : 'Enter your Dyn username and password. If your account uses an Updater Client Key for DDNS updates, enter that in the password field.';
+      el('dnsKeyHint').textContent = changed ? 'Switching providers requires fresh credentials. Saved credentials are never shared between providers.' : hasKey ? 'Credential saved. Leave blank to keep it.' : 'Enter your updater credential.';
+      el('dnsKey').required = changed;
+      el('dnsUser').required = !duck && !free && changed;
+    }
+    page.querySelectorAll('.dns-provider-tile').forEach(function (tile) {
+      tile.addEventListener('click', function () {
+        var provider = tile.getAttribute('data-provider');
+        if (provider === el('dnsProvider').value) return;
+        el('dnsProvider').value = provider;
+        el('dnsUser').value = ''; el('dnsKey').value = ''; el('dnsHost').value = '';
+       
+        providerHelp();
+      });
+    });
+    function request(path, method, body) {
+      var options = {type: method || 'GET', url: ApiClient.getUrl('DynDnsUpdater/' + path), dataType: 'json'};
+      if (body) { options.contentType = 'application/json'; options.data = JSON.stringify(body); }
+      return ApiClient.ajax(options);
+    }
+    function showOutcome(outcome) {
+      var labels = {success: 'Success', error: 'Failed', pending: 'Waiting', disabled: 'Disabled', checking: 'Checking…'};
+      if (!labels[outcome]) outcome = 'pending';
+      el('dnsStatusPanel').setAttribute('data-outcome', outcome);
+      el('dnsOutcome').textContent = labels[outcome];
+    }
+    function render(data, settings) {
+      if (settings) {
+        savedProvider = field(data, 'Provider') || 'Dyn'; hasKey = field(data, 'HasKey');
+        savedSettings = {Enabled: field(data, 'Enabled'), Provider: savedProvider, Hostname: field(data, 'Hostname'), Username: field(data, 'Username')};
+        el('dnsProvider').value = savedProvider;
+        el('dnsEnabled').checked = field(data, 'Enabled'); el('dnsHost').value = field(data, 'Hostname');
+        el('dnsUser').value = field(data, 'Username'); el('dnsKey').value = '';
+        providerHelp(); toggleFields();
+      }
+      var s = field(data, 'Status');
+      showOutcome(!field(data, 'Enabled') ? 'disabled' : field(s, 'Suspended') ? 'error' : field(s, 'Outcome') || 'pending');
+      el('dnsMessage').textContent = !field(data, 'Enabled') ? 'Automatic updates are disabled.' :
+        (field(s, 'Suspended') ? 'Paused: ' : '') + field(s, 'Message');
+      el('dnsIp').textContent = field(s, 'PublicIp') || '—'; el('dnsChecked').textContent = date(field(s, 'LastCheck'));
+      el('dnsSuccess').textContent = date(field(s, 'LastSuccess')); el('dnsNext').textContent = date(field(s, 'NextAttempt'));
+    }
+    function failure() { showOutcome('error'); el('dnsMessage').textContent = 'Request failed. Check your administrator login and settings, then try again.'; }
+    page.addEventListener('pageshow', function () { request('Settings').then(function (d) { render(d, true); }).catch(failure); });
+    el('dynDnsForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      if (!savedSettings) return;
+      var body = {Provider: el('dnsProvider').value, Enabled: el('dnsEnabled').checked, Hostname: el('dnsHost').value,
+        Username: el('dnsProvider').value === 'DuckDNS' ? '' : el('dnsUser').value, UpdaterKey: el('dnsKey').value || null, Resume: false};
+      if (!body.Enabled) body = {Provider: savedSettings.Provider, Enabled: false, Hostname: savedSettings.Hostname, Username: savedSettings.Username, UpdaterKey: null, Resume: false};
+      request('Settings', 'POST', body)
+        .then(function (d) { render(d, true); el('dnsMessage').textContent = 'Settings saved. ' + el('dnsMessage').textContent; }).catch(failure);
+    });
+    el('dnsCheck').addEventListener('click', function () {
+      el('dnsCheck').disabled = true;
+      showOutcome('checking');
+      request('Check', 'POST').then(function (d) { render(d, false); }).catch(failure)
+        .finally(function () { el('dnsCheck').disabled = false; });
+    });
+    el('dnsRefresh').addEventListener('click', function () { request('Settings').then(function (d) { render(d, false); }).catch(failure); });
+  }());
+  </script>
+</div>
+</body></html>
