@@ -1,0 +1,13 @@
+{
+  "name": "Dynamic DNS Updater",
+  "description": "Updates a Dyn, No-IP, DuckDNS, Dynu or FreeDNS hostname when your public IPv4 address changes.",
+  "overview": "Administrator settings, durable status, scheduled checks, and provider-safe retries.",
+  "owner": "CrawTek",
+  "category": "General",
+  "guid": "87444c87-1082-414f-a07d-5e22c87c16f4",
+  "version": "1.4.0.1",
+  "imagePath": "icon.png",
+  "targetAbi": "12.1.0.0",
+  "status": "Active",
+  "autoUpdate": false
+}

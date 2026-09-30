@@ -1,0 +1,16 @@
+.sdk/
+.sdk-home/
+.nuget/
+**/bin/
+**/obj/
+tools/
+dist/
+release/
+*.zip
+# Private, machine-specific migration helpers are not part of the public project.
+install.sh
+rollback.sh
+upgrade-local.sh
+updater.key
+settings.json
+state.json
